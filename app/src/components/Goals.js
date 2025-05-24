@@ -26,15 +26,15 @@ const Goals = ({ darkmode,codeforcesUsers,leetcodeUsers }) => {
 
   useEffect(() => {
     let totalSolved = 0;
-    console.log(codeforcesUsers);
-    console.log(leetcodeUsers)
+    console.log(codeforcesUsers[0]);
+    console.log(leetcodeUsers[0])
     const solvedc = codeforcesUsers.find((u) => u.username==="Yuvraj_Rathod");
     const solvedl = leetcodeUsers.find((u) => u.username==="1bJxR2iXHT");
     totalSolved += solvedc.total_solved;
     totalSolved += solvedl.total_solved;
     console.log(totalSolved);
-    console.log(solvedc);
-    console.log(solvedl);
+    console.log(solvedc.total_solved);
+    console.log(solvedl.total_solved);
     setTotalSolvedNow(totalSolved);
   }, [])
 
@@ -207,6 +207,7 @@ const Goals = ({ darkmode,codeforcesUsers,leetcodeUsers }) => {
       starred: false,
       problem: newTask.target,
       solved: 0,
+      totalSolvedNow: totalSolvedNow,
     };
     const addTask = async (task) => {
       console.log(task)
@@ -297,18 +298,26 @@ const Goals = ({ darkmode,codeforcesUsers,leetcodeUsers }) => {
 
 
   // Toggle task completed status
-  const toggleTaskCompleted = (id) => {
+  const toggleTaskCompleted = (title) => {
     setTasks(
       tasks.map((task) =>
-        task.id === id ? { ...task, completed: !task.completed } : task
+        task.title === title ? { ...task, completed: !task.completed } : task
       )
     );
   };
 
   // Delete a task
-  const deleteTask = (id) => {
+  const deleteTask = async (title) => {
     if(window.confirm("Are you sure you want to delete this task?")){
-      setTasks(tasks.filter((task) => task.id !== id));
+      setTasks(tasks.filter((task) => task.title !== title));
+      await fetch("http://localhost:8000/usertasks/", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({"username":user.username, title}),
+      });
+      
     }
   };
 
@@ -346,7 +355,7 @@ const Goals = ({ darkmode,codeforcesUsers,leetcodeUsers }) => {
 
   // Calculate progress percentage (if target > 0)
   const getProgressPercentage = (task) =>
-    task.target > 0 ? Math.round((task.solved / task.target) * 100) : 0;
+    task.problem > 0 ? Math.round((task.solved / task.problem) * 100) : 0;
 
   return (
     <div style={containerStyle}>
@@ -480,7 +489,7 @@ const Goals = ({ darkmode,codeforcesUsers,leetcodeUsers }) => {
                               ✓
                             </button> */}
                             <button
-                              onClick={() => deleteTask(task.id)}
+                              onClick={() => deleteTask(task.title)}
                               style={{
                                 padding: "6px 10px",
                                 backgroundColor: "red",
@@ -608,7 +617,7 @@ const Goals = ({ darkmode,codeforcesUsers,leetcodeUsers }) => {
                               ✓
                             </button> */}
                             <button
-                              onClick={() => deleteTask(task.id)}
+                              onClick={() => deleteTask(task.title)}
                               style={{
                                 padding: "6px 10px",
                                 backgroundColor: "red",
@@ -668,7 +677,7 @@ const Goals = ({ darkmode,codeforcesUsers,leetcodeUsers }) => {
                 </div>
                 <div style={{ display: "flex", justifyContent: "flex-end" }}>
                   <button
-                    onClick={() => deleteTask(task.id)}
+                    onClick={() => deleteTask(task.title)}
                     style={{
                       padding: "6px 10px",
                       backgroundColor: "red",
